@@ -64,3 +64,69 @@ export const Separator = styled.span`
   color: ${({ theme }) => theme["green-500"]};
   overflow: hidden;
 `;
+
+export const StartCountdownButton = styled.button`
+  /* Layout */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 1rem;
+  gap: 0.5rem;
+  
+  /* Styles */
+  border: 0;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  background-color: ${({ theme }) => theme["green-500"]};
+  color: ${({ theme }) => theme["gray-100"]};
+  transition: background-color 0.2s;
+
+  &:not(:disabled):hover {
+    /* Styles */
+    background-color: ${({ theme }) => theme["green-700"]};
+  }
+
+  &:disabled {
+    /* Styles */
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+`;
+
+const BaseInput = styled.input`
+  /* Layout */
+  height: 2.5rem;
+  padding: 0 0.5rem;
+
+  /* Styles */
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid ${({ theme }) => theme["gray-500"]};
+  font-weight: bold;
+  font-size: 1.125rem;
+  color: ${({ theme }) => theme["gray-100"]};
+
+  &:focus {
+    /* Styles */
+    box-shadow: none;
+    border-color: ${({ theme }) => theme["green-500"]};
+  }
+
+  &::placeholder {
+    /* Styles */
+    color: ${({ theme }) => theme["gray-500"]};
+  }
+`;
+
+export const TaskInput = styled(BaseInput)`
+  /* Layout */
+  flex: 1;
+`;
+
+export const MinutesAmountInput = styled(BaseInput)`
+  /* Layout */
+  width: 4rem;
+  
+`;
