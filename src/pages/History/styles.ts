@@ -74,3 +74,26 @@ export const HistoryList = styled.div`
     }
   }
 `;
+
+interface StatusBadgeProps {
+  $statusColor: "yellow" | "red" | "green";
+}
+
+export const StatusBadge = styled.span<StatusBadgeProps>`
+  /* Layout */
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  &::before {
+    /* Layout */
+    content: "";
+    display: block;
+    width: 0.5rem;
+    height: 0.5rem;
+    
+    /* Styles */
+    border-radius: 50%;
+    background-color: ${({ $statusColor, theme }) => theme[`${$statusColor}-500`]};
+  }
+`;
