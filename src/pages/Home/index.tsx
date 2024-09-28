@@ -33,6 +33,7 @@ type Task = {
 export function Home() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
+  const [amountSecondsPassed, setAmountSecondsPassed] = useState(0);
 
   const { register, handleSubmit, watch, reset } = useForm<NewCycleFormData>({
     resolver: zodResolver(newCycleFormValidationSchema),
@@ -59,6 +60,15 @@ export function Home() {
   const isSubmitDisabled = !task;
 
   const activeTask = tasks.find((task) => task.id === activeTaskId);
+
+  const totalSeconds = activeTask ? activeTask.minutesAmount * 60 : 0;
+  const remainingSeconds = activeTask ? totalSeconds - amountSecondsPassed : 0;
+
+  const minutes = Math.floor(remainingSeconds / 60);
+  const seconds = remainingSeconds % 60;
+
+  const minutesString = String(minutes).padStart(2, "0");
+  const secondsString = String(seconds).padStart(2, "0");
 
   return (
     <HomeContainer>
@@ -96,11 +106,11 @@ export function Home() {
         </FormContainer>
 
         <CountdownContainer>
-          <span>0</span>
-          <span>0</span>
+          <span>{minutesString[0]}</span>
+          <span>{minutesString[1]}</span>
           <Separator>:</Separator>
-          <span>0</span>
-          <span>0</span>
+          <span>{secondsString[0]}</span>
+          <span>{secondsString[1]}</span>
         </CountdownContainer>
 
         <StartCountdownButton type="submit" disabled={isSubmitDisabled}>
