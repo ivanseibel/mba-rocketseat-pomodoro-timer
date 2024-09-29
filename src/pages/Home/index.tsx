@@ -1,9 +1,10 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { differenceInSeconds } from "date-fns";
 import { useForm } from "react-hook-form";
 import * as zod from "zod";
 
 import { Play } from "phosphor-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   CountdownContainer,
   FormContainer,
@@ -28,6 +29,7 @@ type Task = {
   id: string;
   name: string;
   minutesAmount: number;
+  startedAt: Date;
 };
 
 export function Home() {
@@ -48,6 +50,7 @@ export function Home() {
       id: new Date().getTime().toString(),
       name: data.task,
       minutesAmount: data.minutesAmount,
+      startedAt: new Date(),
     };
 
     setTasks((prevTasks) => [...prevTasks, newTask]);
@@ -56,10 +59,22 @@ export function Home() {
     reset();
   }
 
+  const activeTask = tasks.find((task) => task.id === activeTaskId);
+
+  useEffect(() => {
+    if (activeTask) {
+      const intervalId = setInterval(() => {
+        setAmountSecondsPassed(
+          differenceInSeconds(new Date(), activeTask.startedAt),
+        );
+      }, 1000);
+
+      return () => clearInterval(intervalId);
+    }
+  }, [activeTask]);
+
   const task = watch("task");
   const isSubmitDisabled = !task;
-
-  const activeTask = tasks.find((task) => task.id === activeTaskId);
 
   const totalSeconds = activeTask ? activeTask.minutesAmount * 60 : 0;
   const remainingSeconds = activeTask ? totalSeconds - amountSecondsPassed : 0;
