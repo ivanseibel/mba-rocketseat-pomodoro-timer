@@ -55,6 +55,7 @@ export function Home() {
 
     setTasks((prevTasks) => [...prevTasks, newTask]);
     setActiveTaskId(newTask.id);
+    setAmountSecondsPassed(0);
 
     reset();
   }
@@ -62,15 +63,17 @@ export function Home() {
   const activeTask = tasks.find((task) => task.id === activeTaskId);
 
   useEffect(() => {
+    let intervalId: number;
+
     if (activeTask) {
-      const intervalId = setInterval(() => {
+      intervalId = setInterval(() => {
         setAmountSecondsPassed(
           differenceInSeconds(new Date(), activeTask.startedAt),
         );
       }, 1000);
-
-      return () => clearInterval(intervalId);
     }
+
+    return () => clearInterval(intervalId);
   }, [activeTask]);
 
   const task = watch("task");
@@ -84,6 +87,12 @@ export function Home() {
 
   const minutesString = String(minutes).padStart(2, "0");
   const secondsString = String(seconds).padStart(2, "0");
+
+  useEffect(() => {
+    if (activeTask) {
+      document.title = `${minutes}:${seconds}`;
+    }
+  }, [minutes, seconds, activeTask]);
 
   return (
     <HomeContainer>
