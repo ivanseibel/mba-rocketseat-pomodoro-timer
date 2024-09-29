@@ -3,7 +3,7 @@ import { differenceInSeconds } from "date-fns";
 import { useForm } from "react-hook-form";
 import * as zod from "zod";
 
-import { Play } from "phosphor-react";
+import { HandPalm, Play } from "phosphor-react";
 import { useEffect, useState } from "react";
 import {
   CountdownContainer,
@@ -12,6 +12,7 @@ import {
   MinutesAmountInput,
   Separator,
   StartCountdownButton,
+  StopCountdownButton,
   TaskInput,
 } from "./styles";
 
@@ -19,7 +20,7 @@ const newCycleFormValidationSchema = zod.object({
   task: zod.string().min(1, "Task name is required"),
   minutesAmount: zod
     .number()
-    .min(5, "Minimum amount of minutes is 5")
+    .min(1, "Minimum amount of minutes is 5")
     .max(60, "Maximum amount of minutes is 60"),
 });
 
@@ -30,6 +31,8 @@ type Task = {
   name: string;
   minutesAmount: number;
   startedAt: Date;
+  stoppedAt?: Date;
+  finishedAt?: Date;
 };
 
 export function Home() {
@@ -67,14 +70,35 @@ export function Home() {
 
     if (activeTask) {
       intervalId = setInterval(() => {
-        setAmountSecondsPassed(
-          differenceInSeconds(new Date(), activeTask.startedAt),
+        const diffInSeconds = differenceInSeconds(
+          new Date(),
+          activeTask.startedAt,
         );
+
+        if (diffInSeconds >= activeTask.minutesAmount * 60) {
+          setTasks((prevTasks) =>
+            prevTasks.map((task) => {
+              if (task.id === activeTaskId) {
+                return {
+                  ...task,
+                  finishedAt: new Date(),
+                };
+              }
+
+              return task;
+            }),
+          );
+          setActiveTaskId(null);
+          setAmountSecondsPassed(0);
+          clearInterval(intervalId);
+        } else {
+          setAmountSecondsPassed(diffInSeconds);
+        }
       }, 1000);
     }
 
     return () => clearInterval(intervalId);
-  }, [activeTask]);
+  }, [activeTask, activeTaskId]);
 
   const task = watch("task");
   const isSubmitDisabled = !task;
@@ -90,9 +114,29 @@ export function Home() {
 
   useEffect(() => {
     if (activeTask) {
-      document.title = `${minutes}:${seconds}`;
+      document.title = `${minutesString}:${secondsString}`;
+      return;
     }
+
+    document.title = "Pomodoro";
   }, [minutes, seconds, activeTask]);
+
+  function handleStopCountdown() {
+    const updatedTasks = tasks.map((task) => {
+      if (task.id === activeTaskId) {
+        return {
+          ...task,
+          stoppedAt: new Date(),
+        };
+      }
+
+      return task;
+    });
+
+    setTasks(updatedTasks);
+    setActiveTaskId(null);
+    setAmountSecondsPassed(0);
+  }
 
   return (
     <HomeContainer>
@@ -104,6 +148,7 @@ export function Home() {
             id="task"
             placeholder="Give a name to your project"
             list="tasks"
+            disabled={!!activeTask}
             {...register("task")}
           />
 
@@ -119,8 +164,9 @@ export function Home() {
             id="minutesAmount"
             placeholder="00"
             step={5}
-            min={5}
+            min={1}
             max={60}
+            disabled={!!activeTask}
             {...register("minutesAmount", {
               valueAsNumber: true,
             })}
@@ -137,10 +183,17 @@ export function Home() {
           <span>{secondsString[1]}</span>
         </CountdownContainer>
 
-        <StartCountdownButton type="submit" disabled={isSubmitDisabled}>
-          <Play size={24} />
-          Start
-        </StartCountdownButton>
+        {activeTask ? (
+          <StopCountdownButton type="button" onClick={handleStopCountdown}>
+            <HandPalm size={24} />
+            Interrupt
+          </StopCountdownButton>
+        ) : (
+          <StartCountdownButton type="submit" disabled={isSubmitDisabled}>
+            <Play size={24} />
+            Start
+          </StartCountdownButton>
+        )}
       </form>
     </HomeContainer>
   );
