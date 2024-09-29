@@ -5,6 +5,8 @@ import * as zod from "zod";
 
 import { HandPalm, Play } from "phosphor-react";
 import { useEffect, useState } from "react";
+import { Countdown } from "./components/Countdown";
+import { NewTaskForm } from "./components/NewTaskForm";
 import {
   CountdownContainer,
   FormContainer,
@@ -141,48 +143,9 @@ export function Home() {
   return (
     <HomeContainer>
       <form onSubmit={handleSubmit(handleNewCycle)}>
-        <FormContainer>
-          <label htmlFor="task">I'm going to work on</label>
-          <TaskInput
-            type="text"
-            id="task"
-            placeholder="Give a name to your project"
-            list="tasks"
-            disabled={!!activeTask}
-            {...register("task")}
-          />
+        <NewTaskForm />
 
-          <datalist id="tasks">
-            <option value="Project 1" />
-            <option value="Project 2" />
-            <option value="Project 3" />
-          </datalist>
-
-          <label htmlFor="minutesAmount">for</label>
-          <MinutesAmountInput
-            type="number"
-            id="minutesAmount"
-            placeholder="00"
-            step={5}
-            min={1}
-            max={60}
-            disabled={!!activeTask}
-            {...register("minutesAmount", {
-              valueAsNumber: true,
-            })}
-          />
-
-          <span>minutes</span>
-        </FormContainer>
-
-        <CountdownContainer>
-          <span>{minutesString[0]}</span>
-          <span>{minutesString[1]}</span>
-          <Separator>:</Separator>
-          <span>{secondsString[0]}</span>
-          <span>{secondsString[1]}</span>
-        </CountdownContainer>
-
+        <Countdown />
         {activeTask ? (
           <StopCountdownButton type="button" onClick={handleStopCountdown}>
             <HandPalm size={24} />
