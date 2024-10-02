@@ -1,6 +1,40 @@
+import { differenceInSeconds } from "date-fns";
+import { useContext, useEffect } from "react";
+import { TaskContext } from "../..";
 import { CountdownContainer, Separator } from "./styles";
 
 export function Countdown() {
+  const {
+    activeTask,
+    activeTaskId,
+    updateAmountSecondsPassed,
+    setActiveTaskAsFinished,
+    minutesString,
+    secondsString,
+  } = useContext(TaskContext);
+
+  useEffect(() => {
+    let intervalId: number;
+
+    if (activeTask) {
+      intervalId = setInterval(() => {
+        const diffInSeconds = differenceInSeconds(
+          new Date(),
+          activeTask.startedAt,
+        );
+
+        if (diffInSeconds >= activeTask.minutesAmount * 60) {
+          setActiveTaskAsFinished();
+          clearInterval(intervalId);
+        } else {
+          updateAmountSecondsPassed(diffInSeconds);
+        }
+      }, 1000);
+    }
+
+    return () => clearInterval(intervalId);
+  }, [activeTask, activeTaskId, setActiveTaskAsFinished]);
+
   return (
     <CountdownContainer>
       <span>{minutesString[0]}</span>

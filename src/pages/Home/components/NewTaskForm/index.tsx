@@ -1,6 +1,12 @@
+import { useContext } from "react";
+import { useFormContext } from "react-hook-form";
+import { TaskContext } from "../..";
 import { FormContainer, MinutesAmountInput, TaskInput } from "./styles";
 
 export function NewTaskForm() {
+  const { activeTask } = useContext(TaskContext);
+  const { register } = useFormContext();
+
   return (
     <FormContainer>
       <label htmlFor="task">I'm going to work on</label>

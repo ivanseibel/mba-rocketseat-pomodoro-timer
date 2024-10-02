@@ -1,32 +1,16 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { differenceInSeconds } from "date-fns";
-import { useForm } from "react-hook-form";
 import * as zod from "zod";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import { HandPalm, Play } from "phosphor-react";
-import { useEffect, useState } from "react";
+import { createContext, useEffect, useState } from "react";
+import { FormProvider, useForm } from "react-hook-form";
 import { Countdown } from "./components/Countdown";
 import { NewTaskForm } from "./components/NewTaskForm";
 import {
-  CountdownContainer,
-  FormContainer,
   HomeContainer,
-  MinutesAmountInput,
-  Separator,
   StartCountdownButton,
   StopCountdownButton,
-  TaskInput,
 } from "./styles";
-
-const newCycleFormValidationSchema = zod.object({
-  task: zod.string().min(1, "Task name is required"),
-  minutesAmount: zod
-    .number()
-    .min(1, "Minimum amount of minutes is 5")
-    .max(60, "Maximum amount of minutes is 60"),
-});
-
-type NewCycleFormData = zod.infer<typeof newCycleFormValidationSchema>;
 
 type Task = {
   id: string;
@@ -37,18 +21,44 @@ type Task = {
   finishedAt?: Date;
 };
 
+export const newCycleFormValidationSchema = zod.object({
+  task: zod.string().min(1, "Task name is required"),
+  minutesAmount: zod
+    .number()
+    .min(1, "Minimum amount of minutes is 5")
+    .max(60, "Maximum amount of minutes is 60"),
+});
+
+type TaksContextData = {
+  activeTask: Task | undefined;
+  activeTaskId: string | null;
+  amountSecondsPassed: number;
+  minutesString: string;
+  secondsString: string;
+  updateAmountSecondsPassed: (newAmountSecondsPassed: number) => void;
+  setActiveTaskAsFinished: () => void;
+};
+
+export const TaskContext = createContext<TaksContextData>(
+  {} as TaksContextData,
+);
+
+type NewCycleFormData = zod.infer<typeof newCycleFormValidationSchema>;
+
 export function Home() {
+  const [amountSecondsPassed, setAmountSecondsPassed] = useState(0);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
-  const [amountSecondsPassed, setAmountSecondsPassed] = useState(0);
 
-  const { register, handleSubmit, watch, reset } = useForm<NewCycleFormData>({
+  const newTaskForm = useForm<NewCycleFormData>({
     resolver: zodResolver(newCycleFormValidationSchema),
     defaultValues: {
       task: "",
       minutesAmount: 25,
     },
   });
+
+  const { handleSubmit, reset, watch } = newTaskForm;
 
   function handleNewCycle(data: NewCycleFormData) {
     const newTask: Task = {
@@ -67,61 +77,8 @@ export function Home() {
 
   const activeTask = tasks.find((task) => task.id === activeTaskId);
 
-  useEffect(() => {
-    let intervalId: number;
-
-    if (activeTask) {
-      intervalId = setInterval(() => {
-        const diffInSeconds = differenceInSeconds(
-          new Date(),
-          activeTask.startedAt,
-        );
-
-        if (diffInSeconds >= activeTask.minutesAmount * 60) {
-          setTasks((prevTasks) =>
-            prevTasks.map((task) => {
-              if (task.id === activeTaskId) {
-                return {
-                  ...task,
-                  finishedAt: new Date(),
-                };
-              }
-
-              return task;
-            }),
-          );
-          setActiveTaskId(null);
-          setAmountSecondsPassed(0);
-          clearInterval(intervalId);
-        } else {
-          setAmountSecondsPassed(diffInSeconds);
-        }
-      }, 1000);
-    }
-
-    return () => clearInterval(intervalId);
-  }, [activeTask, activeTaskId]);
-
   const task = watch("task");
   const isSubmitDisabled = !task;
-
-  const totalSeconds = activeTask ? activeTask.minutesAmount * 60 : 0;
-  const remainingSeconds = activeTask ? totalSeconds - amountSecondsPassed : 0;
-
-  const minutes = Math.floor(remainingSeconds / 60);
-  const seconds = remainingSeconds % 60;
-
-  const minutesString = String(minutes).padStart(2, "0");
-  const secondsString = String(seconds).padStart(2, "0");
-
-  useEffect(() => {
-    if (activeTask) {
-      document.title = `${minutesString}:${secondsString}`;
-      return;
-    }
-
-    document.title = "Pomodoro";
-  }, [minutes, seconds, activeTask]);
 
   function handleStopCountdown() {
     const updatedTasks = tasks.map((task) => {
@@ -140,12 +97,68 @@ export function Home() {
     setAmountSecondsPassed(0);
   }
 
+  function setActiveTaskAsFinished() {
+    setTasks((prevTasks) =>
+      prevTasks.map((task) => {
+        if (task.id === activeTaskId) {
+          return {
+            ...task,
+            finishedAt: new Date(),
+          };
+        }
+
+        return task;
+      }),
+    );
+    setActiveTaskId(null);
+    setAmountSecondsPassed(0);
+  }
+
+  function updateAmountSecondsPassed(newAmountSecondsPassed: number) {
+    setAmountSecondsPassed(newAmountSecondsPassed);
+  }
+
+  const totalSeconds = !!activeTask ? activeTask.minutesAmount * 60 : 0;
+
+  const remainingSeconds = !!activeTask
+    ? totalSeconds - amountSecondsPassed
+    : 0;
+
+  const minutes = Math.floor(remainingSeconds / 60);
+  const seconds = remainingSeconds % 60;
+
+  const minutesString = String(minutes).padStart(2, "0");
+  const secondsString = String(seconds).padStart(2, "0");
+
+  useEffect(() => {
+    if (activeTask) {
+      document.title = `${minutesString}:${secondsString}`;
+      return;
+    }
+
+    document.title = "Pomodoro";
+  }, [minutes, seconds, activeTask]);
+
   return (
     <HomeContainer>
       <form onSubmit={handleSubmit(handleNewCycle)}>
-        <NewTaskForm />
+        <TaskContext.Provider
+          value={{
+            activeTask,
+            activeTaskId,
+            amountSecondsPassed,
+            minutesString,
+            secondsString,
+            updateAmountSecondsPassed,
+            setActiveTaskAsFinished,
+          }}
+        >
+          <FormProvider {...newTaskForm}>
+            <NewTaskForm />
+          </FormProvider>
+          <Countdown />
+        </TaskContext.Provider>
 
-        <Countdown />
         {activeTask ? (
           <StopCountdownButton type="button" onClick={handleStopCountdown}>
             <HandPalm size={24} />
