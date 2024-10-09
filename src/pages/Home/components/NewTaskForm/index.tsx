@@ -1,6 +1,6 @@
 import { useContext } from "react";
 import { useFormContext } from "react-hook-form";
-import { TaskContext } from "../..";
+import { TaskContext } from "../../../../contexts/TasksContext";
 import { FormContainer, MinutesAmountInput, TaskInput } from "./styles";
 
 export function NewTaskForm() {
@@ -31,8 +31,6 @@ export function NewTaskForm() {
         id="minutesAmount"
         placeholder="00"
         step={5}
-        min={1}
-        max={60}
         disabled={!!activeTask}
         {...register("minutesAmount", {
           valueAsNumber: true,

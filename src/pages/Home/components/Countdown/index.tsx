@@ -1,6 +1,6 @@
 import { differenceInSeconds } from "date-fns";
 import { useContext, useEffect } from "react";
-import { TaskContext } from "../..";
+import { TaskContext } from "../../../../contexts/TasksContext";
 import { CountdownContainer, Separator } from "./styles";
 
 export function Countdown() {
@@ -8,7 +8,7 @@ export function Countdown() {
     activeTask,
     activeTaskId,
     updateAmountSecondsPassed,
-    setActiveTaskAsFinished,
+    finishActiveTask: setActiveTaskAsFinished,
     minutesString,
     secondsString,
   } = useContext(TaskContext);

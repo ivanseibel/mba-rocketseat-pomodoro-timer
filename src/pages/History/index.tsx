@@ -1,6 +1,20 @@
+import { useContext } from "react";
+import { TaskContext } from "../../contexts/TasksContext";
 import { HistoryContainer, HistoryList, StatusBadge } from "./styles";
 
 export function History() {
+  const { tasks } = useContext(TaskContext);
+
+  const getStatusAndColor = (task) => {
+    if (task.finishedAt) {
+      return { status: "Completed", color: "green" };
+    } else if (task.stoppedAt) {
+      return { status: "Stopped", color: "red" };
+    } else {
+      return { status: "In Progress", color: "yellow" };
+    }
+  };
+
   return (
     <HistoryContainer>
       <h1>My history</h1>
@@ -16,54 +30,28 @@ export function History() {
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td>Task 1</td>
-              <td>25 minutes</td>
-              <td>2 days ago</td>
-              <td>
-                <StatusBadge $statusColor="red">Stopped</StatusBadge>
-              </td>
-            </tr>
-            <tr>
-              <td>Task 2</td>
-              <td>50 minutes</td>
-              <td>1 week ago</td>
-              <td>
-                <StatusBadge $statusColor="green">Completed</StatusBadge>
-              </td>
-            </tr>
-            <tr>
-              <td>Task 3</td>
-              <td>30 minutes</td>
-              <td>10 minutes ago</td>
-              <td>
-                <StatusBadge $statusColor="yellow">In Progress</StatusBadge>
-              </td>
-            </tr>
-            <tr>
-              <td>Task 1</td>
-              <td>25 minutes</td>
-              <td>2 days ago</td>
-              <td>
-                <StatusBadge $statusColor="red">Stopped</StatusBadge>
-              </td>
-            </tr>
-            <tr>
-              <td>Task 2</td>
-              <td>50 minutes</td>
-              <td>1 week ago</td>
-              <td>
-                <StatusBadge $statusColor="green">Completed</StatusBadge>
-              </td>
-            </tr>
-            <tr>
-              <td>Task 3</td>
-              <td>30 minutes</td>
-              <td>10 minutes ago</td>
-              <td>
-                <StatusBadge $statusColor="yellow">In Progress</StatusBadge>
-              </td>
-            </tr>
+            {tasks.map((task) => {
+              return (
+                <tr key={task.id}>
+                  <td>{task.name}</td>
+                  <td>{task.minutesAmount} minutes</td>
+                  <td>{task.startedAt.toLocaleString()}</td>
+                  <td>
+                    {task.finishedAt && (
+                      <StatusBadge $statusColor="green">Finished</StatusBadge>
+                    )}
+                    {task.stoppedAt && (
+                      <StatusBadge $statusColor="red">Stopped</StatusBadge>
+                    )}
+                    {!task.finishedAt && !task.stoppedAt && (
+                      <StatusBadge $statusColor="yellow">
+                        In Progress
+                      </StatusBadge>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </HistoryList>
