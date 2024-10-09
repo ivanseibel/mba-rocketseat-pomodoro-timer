@@ -1,4 +1,4 @@
-import { createContext, useEffect, useState } from "react";
+import { createContext, useEffect, useReducer, useState } from "react";
 import { NewTaskFormData } from "../schemas/newTask";
 
 export type Task = {
@@ -28,31 +28,27 @@ export const TaskContext = createContext<TaksContextData>(
 );
 
 export function TaskProvider({ children }: { children: React.ReactNode }) {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
-  const [amountSecondsPassed, setAmountSecondsPassed] = useState(0);
+  const [tasks, dispatch] = useReducer((state: Task[], action: any) => {
+    if (action.type === "ADD_TASK") {
+      return [...state, action.payload.task];
+    }
 
-  function stopCountdown() {
-    const updatedTasks = tasks.map((task) => {
-      if (task.id === activeTaskId) {
-        return {
-          ...task,
-          stoppedAt: new Date(),
-        };
-      }
+    if (action.type === "STOP_TASK") {
+      return state.map((task) => {
+        if (task.id === action.payload.id) {
+          return {
+            ...task,
+            stoppedAt: new Date(),
+          };
+        }
 
-      return task;
-    });
+        return task;
+      });
+    }
 
-    setTasks(updatedTasks);
-    setActiveTaskId(null);
-    setAmountSecondsPassed(0);
-  }
-
-  function finishActiveTask() {
-    setTasks((prevTasks) =>
-      prevTasks.map((task) => {
-        if (task.id === activeTaskId) {
+    if (action.type === "FINISH_TASK") {
+      return state.map((task) => {
+        if (task.id === action.payload.id) {
           return {
             ...task,
             finishedAt: new Date(),
@@ -60,8 +56,60 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
         }
 
         return task;
-      }),
-    );
+      });
+    }
+
+    return state;
+  }, []);
+
+  const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
+  const [amountSecondsPassed, setAmountSecondsPassed] = useState(0);
+
+  function stopCountdown() {
+    // const updatedTasks = tasks.map((task) => {
+    //   if (task.id === activeTaskId) {
+    //     return {
+    //       ...task,
+    //       stoppedAt: new Date(),
+    //     };
+    //   }
+
+    //   return task;
+    // });
+
+    // setTasks(updatedTasks);
+
+    dispatch({
+      type: "STOP_TASK",
+      payload: {
+        id: activeTaskId,
+      },
+    });
+
+    setActiveTaskId(null);
+    setAmountSecondsPassed(0);
+  }
+
+  function finishActiveTask() {
+    // setTasks((prevTasks) =>
+    //   prevTasks.map((task) => {
+    //     if (task.id === activeTaskId) {
+    //       return {
+    //         ...task,
+    //         finishedAt: new Date(),
+    //       };
+    //     }
+
+    //     return task;
+    //   }),
+    // );
+    dispatch({
+      type: "FINISH_TASK",
+      payload: {
+        id: activeTaskId,
+      },
+    });
+
     setActiveTaskId(null);
     setAmountSecondsPassed(0);
   }
@@ -78,7 +126,14 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
       startedAt: new Date(),
     };
 
-    setTasks((prevTasks) => [...prevTasks, newTask]);
+    // setTasks((prevTasks) => [...prevTasks, newTask]);
+    dispatch({
+      type: "ADD_TASK",
+      payload: {
+        task: newTask,
+      },
+    });
+
     setActiveTaskId(newTask.id);
     setAmountSecondsPassed(0);
   }
