@@ -1,4 +1,5 @@
 import { createContext, useEffect, useReducer, useState } from "react";
+import { tasksReducer } from "../reducers/tasks";
 import { NewTaskFormData } from "../schemas/newTask";
 
 export type Task = {
@@ -28,94 +29,37 @@ export const TaskContext = createContext<TaksContextData>(
 );
 
 export function TaskProvider({ children }: { children: React.ReactNode }) {
-  const [tasks, dispatch] = useReducer((state: Task[], action: any) => {
-    if (action.type === "ADD_TASK") {
-      return [...state, action.payload.task];
-    }
-
-    if (action.type === "STOP_TASK") {
-      return state.map((task) => {
-        if (task.id === action.payload.id) {
-          return {
-            ...task,
-            stoppedAt: new Date(),
-          };
-        }
-
-        return task;
-      });
-    }
-
-    if (action.type === "FINISH_TASK") {
-      return state.map((task) => {
-        if (task.id === action.payload.id) {
-          return {
-            ...task,
-            finishedAt: new Date(),
-          };
-        }
-
-        return task;
-      });
-    }
-
-    return state;
-  }, []);
-
-  const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
-  const [amountSecondsPassed, setAmountSecondsPassed] = useState(0);
+  const [taskState, dispatch] = useReducer(tasksReducer, {
+    tasks: [],
+    activeTaskId: null,
+    amountSecondsPassed: 0,
+  });
 
   function stopCountdown() {
-    // const updatedTasks = tasks.map((task) => {
-    //   if (task.id === activeTaskId) {
-    //     return {
-    //       ...task,
-    //       stoppedAt: new Date(),
-    //     };
-    //   }
-
-    //   return task;
-    // });
-
-    // setTasks(updatedTasks);
-
     dispatch({
       type: "STOP_TASK",
       payload: {
-        id: activeTaskId,
+        id: taskState.activeTaskId,
       },
     });
-
-    setActiveTaskId(null);
-    setAmountSecondsPassed(0);
   }
 
   function finishActiveTask() {
-    // setTasks((prevTasks) =>
-    //   prevTasks.map((task) => {
-    //     if (task.id === activeTaskId) {
-    //       return {
-    //         ...task,
-    //         finishedAt: new Date(),
-    //       };
-    //     }
-
-    //     return task;
-    //   }),
-    // );
     dispatch({
       type: "FINISH_TASK",
       payload: {
-        id: activeTaskId,
+        id: taskState.activeTaskId,
       },
     });
-
-    setActiveTaskId(null);
-    setAmountSecondsPassed(0);
   }
 
   function updateAmountSecondsPassed(newAmountSecondsPassed: number) {
-    setAmountSecondsPassed(newAmountSecondsPassed);
+    dispatch({
+      type: "UPDATE_AMOUNT_SECONDS_PASSED",
+      payload: {
+        newAmountSecondsPassed,
+      },
+    });
   }
 
   function startNewTask(data: NewTaskFormData) {
@@ -126,24 +70,22 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
       startedAt: new Date(),
     };
 
-    // setTasks((prevTasks) => [...prevTasks, newTask]);
     dispatch({
       type: "ADD_TASK",
       payload: {
         task: newTask,
       },
     });
-
-    setActiveTaskId(newTask.id);
-    setAmountSecondsPassed(0);
   }
 
-  const activeTask = tasks.find((task) => task.id === activeTaskId);
+  const activeTask = taskState.tasks.find(
+    (task) => task.id === taskState.activeTaskId,
+  );
 
   const totalSeconds = !!activeTask ? activeTask.minutesAmount * 60 : 0;
 
   const remainingSeconds = !!activeTask
-    ? totalSeconds - amountSecondsPassed
+    ? totalSeconds - taskState.amountSecondsPassed
     : 0;
 
   const minutes = Math.floor(remainingSeconds / 60);
@@ -164,10 +106,10 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
   return (
     <TaskContext.Provider
       value={{
-        tasks,
+        tasks: taskState.tasks,
         activeTask,
-        activeTaskId,
-        amountSecondsPassed,
+        activeTaskId: taskState.activeTaskId,
+        amountSecondsPassed: taskState.amountSecondsPassed,
         minutesString,
         secondsString,
         updateAmountSecondsPassed,
