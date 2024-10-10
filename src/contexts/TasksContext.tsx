@@ -1,5 +1,5 @@
 import { createContext, useEffect, useReducer, useState } from "react";
-import { tasksReducer } from "../reducers/tasks";
+import { ActionTypes, tasksReducer } from "../reducers/tasks";
 import { NewTaskFormData } from "../schemas/newTask";
 
 export type Task = {
@@ -37,7 +37,7 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
 
   function stopCountdown() {
     dispatch({
-      type: "STOP_TASK",
+      type: ActionTypes.STOP_TASK,
       payload: {
         id: taskState.activeTaskId,
       },
@@ -46,7 +46,7 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
 
   function finishActiveTask() {
     dispatch({
-      type: "FINISH_TASK",
+      type: ActionTypes.FINISH_TASK,
       payload: {
         id: taskState.activeTaskId,
       },
@@ -55,7 +55,7 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
 
   function updateAmountSecondsPassed(newAmountSecondsPassed: number) {
     dispatch({
-      type: "UPDATE_AMOUNT_SECONDS_PASSED",
+      type: ActionTypes.UPDATE_AMOUNT_SECONDS_PASSED,
       payload: {
         newAmountSecondsPassed,
       },
@@ -71,7 +71,7 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
     };
 
     dispatch({
-      type: "ADD_TASK",
+      type: ActionTypes.ADD_TASK,
       payload: {
         task: newTask,
       },

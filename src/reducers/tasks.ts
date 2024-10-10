@@ -6,16 +6,23 @@ type TasksState = {
   amountSecondsPassed: number;
 };
 
+export enum ActionTypes {
+  ADD_TASK = "ADD_TASK",
+  STOP_TASK = "STOP_TASK",
+  FINISH_TASK = "FINISH_TASK",
+  UPDATE_AMOUNT_SECONDS_PASSED = "UPDATE_AMOUNT_SECONDS_PASSED",
+}
+
 export function tasksReducer(state: TasksState, action: any) {
   switch (action.type) {
-    case "ADD_TASK":
+    case ActionTypes.ADD_TASK:
       return {
         ...state,
         tasks: [...state.tasks, action.payload.task],
         activeTaskId: action.payload.task.id,
         amountSecondsPassed: 0,
       };
-    case "STOP_TASK":
+    case ActionTypes.STOP_TASK:
       return {
         ...state,
         tasks: state.tasks.map((task) => {
@@ -31,7 +38,7 @@ export function tasksReducer(state: TasksState, action: any) {
         activeTaskId: null,
         amountSecondsPassed: 0,
       };
-    case "FINISH_TASK":
+    case ActionTypes.FINISH_TASK:
       return {
         ...state,
         tasks: state.tasks.map((task) => {
@@ -47,7 +54,7 @@ export function tasksReducer(state: TasksState, action: any) {
         activeTaskId: null,
         amountSecondsPassed: 0,
       };
-    case "UPDATE_AMOUNT_SECONDS_PASSED":
+    case ActionTypes.UPDATE_AMOUNT_SECONDS_PASSED:
       return {
         ...state,
         amountSecondsPassed: action.payload.newAmountSecondsPassed,
