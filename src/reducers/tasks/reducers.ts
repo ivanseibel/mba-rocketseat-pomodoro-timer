@@ -1,17 +1,11 @@
-import { Task } from "../contexts/TasksContext";
+import { Task } from "../../contexts/TasksContext";
+import { ActionTypes } from "./actions";
 
 type TasksState = {
   tasks: Task[];
   activeTaskId: string | null;
   amountSecondsPassed: number;
 };
-
-export enum ActionTypes {
-  ADD_TASK = "ADD_TASK",
-  STOP_TASK = "STOP_TASK",
-  FINISH_TASK = "FINISH_TASK",
-  UPDATE_AMOUNT_SECONDS_PASSED = "UPDATE_AMOUNT_SECONDS_PASSED",
-}
 
 export function tasksReducer(state: TasksState, action: any) {
   switch (action.type) {
@@ -26,7 +20,7 @@ export function tasksReducer(state: TasksState, action: any) {
       return {
         ...state,
         tasks: state.tasks.map((task) => {
-          if (task.id === action.payload.id) {
+          if (task.id === state.activeTaskId) {
             return {
               ...task,
               stoppedAt: new Date(),
@@ -42,7 +36,7 @@ export function tasksReducer(state: TasksState, action: any) {
       return {
         ...state,
         tasks: state.tasks.map((task) => {
-          if (task.id === action.payload.id) {
+          if (task.id === state.activeTaskId) {
             return {
               ...task,
               finishedAt: new Date(),

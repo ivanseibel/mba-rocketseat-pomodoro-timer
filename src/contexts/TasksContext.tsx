@@ -1,5 +1,13 @@
-import { createContext, useEffect, useReducer, useState } from "react";
-import { ActionTypes, tasksReducer } from "../reducers/tasks";
+import { add } from "date-fns";
+import { createContext, useEffect, useReducer } from "react";
+import {
+  ActionTypes,
+  addNewTaskAction,
+  finishActiveTaskAction,
+  stopActiveTaskAction,
+  updateAmountSecondsPassedAction,
+} from "../reducers/tasks/actions";
+import { tasksReducer } from "../reducers/tasks/reducers";
 import { NewTaskFormData } from "../schemas/newTask";
 
 export type Task = {
@@ -36,30 +44,15 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
   });
 
   function stopCountdown() {
-    dispatch({
-      type: ActionTypes.STOP_TASK,
-      payload: {
-        id: taskState.activeTaskId,
-      },
-    });
+    dispatch(stopActiveTaskAction());
   }
 
   function finishActiveTask() {
-    dispatch({
-      type: ActionTypes.FINISH_TASK,
-      payload: {
-        id: taskState.activeTaskId,
-      },
-    });
+    dispatch(finishActiveTaskAction());
   }
 
   function updateAmountSecondsPassed(newAmountSecondsPassed: number) {
-    dispatch({
-      type: ActionTypes.UPDATE_AMOUNT_SECONDS_PASSED,
-      payload: {
-        newAmountSecondsPassed,
-      },
-    });
+    dispatch(updateAmountSecondsPassedAction(newAmountSecondsPassed));
   }
 
   function startNewTask(data: NewTaskFormData) {
@@ -70,12 +63,7 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
       startedAt: new Date(),
     };
 
-    dispatch({
-      type: ActionTypes.ADD_TASK,
-      payload: {
-        task: newTask,
-      },
-    });
+    dispatch(addNewTaskAction(newTask));
   }
 
   const activeTask = taskState.tasks.find(
