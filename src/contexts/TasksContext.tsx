@@ -37,11 +37,25 @@ export const TaskContext = createContext<TaksContextData>(
 );
 
 export function TaskProvider({ children }: { children: React.ReactNode }) {
-  const [taskState, dispatch] = useReducer(tasksReducer, {
-    tasks: [],
-    activeTaskId: null,
-    amountSecondsPassed: 0,
-  });
+  const [taskState, dispatch] = useReducer(
+    tasksReducer,
+    {
+      tasks: [],
+      activeTaskId: null,
+      amountSecondsPassed: 0,
+    },
+    (initialState) => {
+      const stateJSON = localStorage.getItem("@pomodoro:tasks-1.0.0");
+
+      if (!stateJSON) {
+        return initialState;
+      }
+
+      const state = JSON.parse(stateJSON);
+
+      return state;
+    },
+  );
 
   function stopCountdown() {
     dispatch(stopActiveTaskAction());
@@ -90,6 +104,12 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
 
     document.title = "Pomodoro";
   }, [minutes, seconds, activeTask]);
+
+  useEffect(() => {
+    const stateJSON = JSON.stringify(taskState);
+
+    localStorage.setItem("@pomodoro:tasks-1.0.0", stateJSON);
+  }, [taskState]);
 
   return (
     <TaskContext.Provider
